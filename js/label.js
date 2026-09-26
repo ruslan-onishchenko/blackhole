@@ -3,6 +3,13 @@ export function createWorkLabel() {
 
   const style = document.createElement('style');
   style.textContent = `
+@font-face {
+  font-family: 'Space Age Cyrillic';
+  src: url('fonts/spaceagecyrillic_regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
 #work-label {
   position: fixed;
   left: 50%;
@@ -11,7 +18,7 @@ export function createWorkLabel() {
   z-index: 2147482000;
   margin: 0;
   padding: 0 0 0.18em;
-  font-family: Verdana, Geneva, 'DejaVu Sans', sans-serif;
+  font-family: 'Space Age Cyrillic', Verdana, Geneva, 'DejaVu Sans', sans-serif;
   font-size: 22px;
   letter-spacing: 0.18em;
   color: #ffc27a;

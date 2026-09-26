@@ -39,6 +39,9 @@ const DISK_OUTER_RADIUS = 5.4;
 const DISK_WIDTH_FIT = 0.8;
 const DISK_TILT_ANGLE = THREE.MathUtils.degToRad(20);
 
+const HOLE_INTRO_DELAY = 0.5;
+const HOLE_INTRO_DURATION = 3.2;
+
 function hasWebGL() {
   try {
     const c = document.createElement('canvas');
@@ -114,6 +117,19 @@ function build() {
   let camPitch = 5;
   let camRoll = 0;
 
+  const holeState = {
+    horizon: 1.1,
+    diskInner: INNER,
+    diskOuter: OUTER
+  };
+  let holeIntroDone = reducedMotion;
+
+  function applyCoreMask(horizon, inner, outer) {
+    coreMask.uniforms.uCoreRadius.value = horizon;
+    coreMask.uniforms.uDiskInner.value = inner;
+    coreMask.uniforms.uDiskOuter.value = outer;
+  }
+
   const label = createWorkLabel();
 
   const debug = createDebugPanel({
@@ -126,14 +142,16 @@ function build() {
     setCamPitch: (v) => { camPitch = v; },
     setCamRoll: (v) => { camRoll = v; },
     setHorizon: (v) => {
+      holeState.horizon = v;
       blackHole.setHorizon(v);
-      coreMask.uniforms.uCoreRadius.value = v;
+      if (holeIntroDone) coreMask.uniforms.uCoreRadius.value = v;
     },
     setPhotonRing: (v) => blackHole.setPhotonRing(v),
     setDiskRadii: (inner, outer) => {
+      holeState.diskInner = inner;
+      holeState.diskOuter = outer;
       disk.setRadii(inner, outer);
-      coreMask.uniforms.uDiskInner.value = inner;
-      coreMask.uniforms.uDiskOuter.value = outer;
+      if (holeIntroDone) applyCoreMask(holeState.horizon, inner, outer);
     }
   });
 
@@ -211,6 +229,20 @@ function build() {
     blackHole.update(animTime, holeReveal, camera);
     disk.update(animTime, diskReveal);
     stars.update(animTime, starsReveal);
+
+    if (!holeIntroDone) {
+      const p = smoothstep01((elapsed - HOLE_INTRO_DELAY) / HOLE_INTRO_DURATION);
+      const s = Math.max(p, 1e-3);
+      blackHole.group.scale.setScalar(s);
+      disk.group.scale.setScalar(s);
+      applyCoreMask(holeState.horizon * s, holeState.diskInner * s, holeState.diskOuter * s);
+      if (elapsed >= HOLE_INTRO_DELAY + HOLE_INTRO_DURATION) {
+        holeIntroDone = true;
+        blackHole.group.scale.setScalar(1);
+        disk.group.scale.setScalar(1);
+        applyCoreMask(holeState.horizon, holeState.diskInner, holeState.diskOuter);
+      }
+    }
 
     updateCamera(animTime);
     composer.render();
