@@ -58,7 +58,7 @@ function showStaticFallback() {
 async function loadShaders() {
   const entries = await Promise.all(
     SHADER_FILES.map(async (name) => {
-      const res = await fetch(`shaders/${name}`);
+      const res = await fetch(`/shaders/${name}`);
       if (!res.ok) throw new Error(`Failed to load shaders/${name}`);
       return [name, await res.text()];
     })

@@ -305,7 +305,7 @@ function injectStyles() {
   document.head.appendChild(style);
 }
 
-const PARAMS_FILE = 'params.json';
+const PARAMS_FILE = '/params.json';
 
 export function createDebugPanel({ disk, blackHole, stars, label, setSize, setCamYaw, setCamPitch, setCamRoll, setHorizon, setPhotonRing, setDiskRadii }) {
   const isDebug = new URLSearchParams(window.location.search).has('debug');

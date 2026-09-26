@@ -5,7 +5,7 @@ export function createWorkLabel() {
   style.textContent = `
 @font-face {
   font-family: 'Space Age Cyrillic';
-  src: url('fonts/spaceagecyrillic_regular.ttf') format('truetype');
+  src: url('/fonts/spaceagecyrillic_regular.ttf') format('truetype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
