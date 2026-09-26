@@ -72,7 +72,8 @@ function makeParticles(shaders, { isMobile, pixelRatio, inner, outer }) {
       uInner: { value: INNER },
       uOuter: { value: OUTER },
       uTempK: { value: 0 },
-      uSpeed: { value: 0.41 },
+      uSpeedInner: { value: 0.41 },
+      uSpeedOuter: { value: 0.23 },
       uWrapAmount: { value: 0.7 },
       uWrapOuter: { value: 3.7 },
       uSizeScale: { value: 1.0 }

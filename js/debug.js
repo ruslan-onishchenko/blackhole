@@ -565,11 +565,17 @@ export function createDebugPanel({ disk, blackHole, stars, label, setSize, setCa
   );
   registerParam('particles.wrapZone', pWrapOuterInput, 3.7);
 
-  const pSpeedInput = slider(
-    sp, 'Скорость вращения', 0, 1.2, 0.01, 0.41,
-    (v) => { disk.materials.particles.uniforms.uSpeed.value = v; }
+  const pSpeedInnerInput = slider(
+    sp, 'Скорость: у центра (внутр. край)', 0, 2, 0.01, 0.41,
+    (v) => { disk.materials.particles.uniforms.uSpeedInner.value = v; }
   );
-  registerParam('particles.speed', pSpeedInput, 0.41);
+  registerParam('particles.speedInner', pSpeedInnerInput, 0.41);
+
+  const pSpeedOuterInput = slider(
+    sp, 'Скорость: у края (внешн. край)', 0, 2, 0.01, 0.23,
+    (v) => { disk.materials.particles.uniforms.uSpeedOuter.value = v; }
+  );
+  registerParam('particles.speedOuter', pSpeedOuterInput, 0.23);
 
   const starsInput = slider(
     sp, 'Звёзды: кол-во', 0, MAX_STARS, 1, MAX_STARS,

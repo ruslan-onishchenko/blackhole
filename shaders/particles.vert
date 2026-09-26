@@ -5,7 +5,8 @@ attribute float aSize;
 attribute float aSeed;
 
 uniform float uTime;
-uniform float uSpeed;
+uniform float uSpeedInner;
+uniform float uSpeedOuter;
 uniform float uPixelRatio;
 uniform float uSizeScale;
 uniform float uInner;
@@ -17,7 +18,8 @@ varying float vT;
 varying float vTw;
 
 void main() {
-  float speed = uSpeed / pow(aRadius, 1.5);
+  float tR = clamp((aRadius - uInner) / max(uOuter - uInner, 1e-4), 0.0, 1.0);
+  float speed = uSpeedInner * pow(max(uSpeedOuter, 1e-4) / max(uSpeedInner, 1e-4), tR);
   float th = aTheta + uTime * speed;
   float r = aRadius;
   float y = aY;
