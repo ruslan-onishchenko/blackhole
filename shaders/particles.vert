@@ -30,9 +30,19 @@ void main() {
   float wrapW = 1.0 - smoothstep(uInner, uWrapOuter, r);
   float backness = clamp(-d.z / max(length(d), 1e-4), 0.0, 1.0);
   float psi = backness * backness * wrapW * uWrapAmount;
-  float s = sin(psi);
-  float c = cos(psi);
-  d = vec3(d.x, d.y * c - d.z * s, d.y * s + d.z * c);
+
+  vec3 nv = normalize((modelViewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz);
+  vec3 f = normalize(core);
+  float side = dot(nv, -core) >= 0.0 ? 1.0 : -1.0;
+  vec3 lift = nv * side;
+  lift -= f * dot(f, lift);
+  lift /= max(length(lift), 1e-4);
+  vec3 axis = cross(f, lift);
+  axis /= max(length(axis), 1e-4);
+
+  float sn = sin(psi);
+  float cn = cos(psi);
+  d = d * cn + cross(axis, d) * sn + axis * dot(axis, d) * (1.0 - cn);
   mv.xyz = core + d;
   gl_PointSize = aSize * uSizeScale * uPixelRatio * (150.0 / max(-mv.z, 0.1));
   gl_Position = projectionMatrix * mv;

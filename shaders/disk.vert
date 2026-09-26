@@ -39,9 +39,19 @@ void main() {
   vWrapMask = backness * backness * wrapW;
 
   float psi = vWrapMask * uWrapAmount * uWrapDir;
-  float s = sin(psi);
-  float c = cos(psi);
-  d = vec3(d.x, d.y * c - d.z * s, d.y * s + d.z * c);
+
+  vec3 nv = normalize((modelViewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz);
+  vec3 f = normalize(core);
+  float side = dot(nv, -core) >= 0.0 ? 1.0 : -1.0;
+  vec3 lift = nv * side;
+  lift -= f * dot(f, lift);
+  lift /= max(length(lift), 1e-4);
+  vec3 axis = cross(f, lift);
+  axis /= max(length(axis), 1e-4);
+
+  float sn = sin(psi);
+  float cn = cos(psi);
+  d = d * cn + cross(axis, d) * sn + axis * dot(axis, d) * (1.0 - cn);
 
   gl_Position = projectionMatrix * vec4(core + d, 1.0);
 }
