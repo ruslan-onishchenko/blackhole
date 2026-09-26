@@ -49,7 +49,13 @@ void main() {
 
   vec3 base = vec3(0.012, 0.004, 0.001);
 
-  vec3 emis = mix(vec3(1.0, 0.72, 0.32), vec3(1.0, 0.55, 0.18), smoothstep(0.1, 0.7, t));
+  vec3 emis;
+  if (uTempK > 0.5) {
+    float kk = uTempK * pow(uInner / max(vR, 0.001), 0.2);
+    emis = tempColor(kk);
+  } else {
+    emis = mix(vec3(1.0, 0.72, 0.32), vec3(1.0, 0.55, 0.18), smoothstep(0.1, 0.7, t));
+  }
 
   float fil = smoothstep(0.58, 0.94, n2 * (0.75 + 0.25 * n1));
   fil *= 0.55 + 0.45 * smoothstep(0.55, 0.15, t);

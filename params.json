@@ -28,5 +28,8 @@
   "veil.streak": 1,
   "veil.wrapUpper": 1.2,
   "veil.wrapLower": 1.5,
-  "veil.wrapDirLower": -1
+  "veil.wrapDirLower": -1,
+  "temp.particles": 0,
+  "temp.veil": 0,
+  "temp.glow": 0
 }

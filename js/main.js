@@ -118,6 +118,7 @@ function build() {
 
   const debug = createDebugPanel({
     disk,
+    blackHole,
     stars,
     label,
     setSize: (v) => { widthFit = v; },

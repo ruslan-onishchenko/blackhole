@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { BLACKBODY_GLSL } from './temperature.js';
 
 export const INNER = 2.3;
 export const OUTER = 5.4;
@@ -6,12 +7,13 @@ export const OUTER = 5.4;
 function makeDiskMesh(shaders, opts) {
   const material = new THREE.ShaderMaterial({
     vertexShader: shaders['disk.vert'],
-    fragmentShader: shaders['disk.frag'],
+    fragmentShader: BLACKBODY_GLSL + shaders['disk.frag'],
     uniforms: {
       uTime: { value: 0 },
       uReveal: { value: 0 },
       uInner: { value: opts.inner },
       uOuter: { value: opts.outer },
+      uTempK: { value: 0 },
       uWrapAmount: { value: opts.wrapAmount },
       uWrapDir: { value: opts.wrapDir },
       uWrapOuter: { value: opts.wrapOuter },
@@ -62,13 +64,14 @@ function makeParticles(shaders, { isMobile, pixelRatio, inner, outer }) {
 
   const material = new THREE.ShaderMaterial({
     vertexShader: shaders['particles.vert'],
-    fragmentShader: shaders['particles.frag'],
+    fragmentShader: BLACKBODY_GLSL + shaders['particles.frag'],
     uniforms: {
       uTime: { value: 0 },
       uReveal: { value: 0 },
       uPixelRatio: { value: pixelRatio },
       uInner: { value: INNER },
       uOuter: { value: OUTER },
+      uTempK: { value: 0 },
       uSpeed: { value: 0.41 },
       uWrapAmount: { value: 0.7 },
       uWrapOuter: { value: 3.7 },

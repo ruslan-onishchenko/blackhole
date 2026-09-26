@@ -1,3 +1,5 @@
+import { createTemperatureEngine, TEMPERATURE_PROFILES } from './temperature.js';
+
 const DBG_BASE_CSS = `
 #debug-root {
   position: fixed;
@@ -305,7 +307,7 @@ function injectStyles() {
 
 const PARAMS_FILE = 'params.json';
 
-export function createDebugPanel({ disk, stars, label, setSize, setCamYaw, setCamPitch, setCamRoll, setHorizon, setPhotonRing, setDiskRadii }) {
+export function createDebugPanel({ disk, blackHole, stars, label, setSize, setCamYaw, setCamPitch, setCamRoll, setHorizon, setPhotonRing, setDiskRadii }) {
   const isDebug = new URLSearchParams(window.location.search).has('debug');
 
   if (isDebug) {
@@ -716,6 +718,53 @@ export function createDebugPanel({ disk, stars, label, setSize, setCamYaw, setCa
     (v) => { disk.materials.lower.uniforms.uWrapDir.value = v; }
   );
   registerParam('veil.wrapDirLower', wrapDirInput, -0.62);
+
+  // --- Temperature ---
+
+  const temp = createTemperatureEngine(disk, blackHole);
+
+  const tsec = section('Температура');
+
+  const fmtK = (v) => (v < 1 ? 'дефолт' : `${v | 0} K`);
+
+  const ptInput = slider(
+    tsec, 'Частицы: температура', 0, 15000, 50, 0,
+    (v) => temp.setParticlesTemp(v),
+    fmtK
+  );
+  registerParam('temp.particles', ptInput, 0);
+
+  const vtInput = slider(
+    tsec, 'Вуаль: температура', 0, 15000, 50, 0,
+    (v) => temp.setVeilTemp(v),
+    fmtK
+  );
+  registerParam('temp.veil', vtInput, 0);
+
+  const gtInput = slider(
+    tsec, 'Свечение (halo+кольцо): температура', 0, 15000, 50, 0,
+    (v) => temp.setGlowTemp(v),
+    fmtK
+  );
+  registerParam('temp.glow', gtInput, 0);
+
+  const tempSelect = document.createElement('select');
+  tempSelect.style.gridArea = 'input';
+  for (const p of TEMPERATURE_PROFILES) {
+    const opt = document.createElement('option');
+    opt.value = String(p.tempK);
+    opt.textContent = p.name;
+    tempSelect.appendChild(opt);
+  }
+  tempSelect.value = '0';
+  tempSelect.addEventListener('change', () => {
+    const k = parseFloat(tempSelect.value);
+    for (const input of [ptInput, vtInput, gtInput]) {
+      input.value = String(k);
+      input.dispatchEvent(new Event('input'));
+    }
+  });
+  control(tsec, 'Профиль температуры', tempSelect);
 
   // --- Actions ---
 
