@@ -6,6 +6,7 @@ import { createStarField } from './stars.js';
 import { createPostProcessing } from './postprocessing.js';
 import { createAdaptiveQuality } from './quality.js';
 import { createDebugPanel } from './debug.js';
+import { createWorkLabel } from './label.js';
 
 const canvas = document.getElementById('scene');
 
@@ -96,15 +97,7 @@ function build() {
   const stars = createStarField(shaders, { isMobile, pixelRatio });
   scene.add(stars.points);
 
-  const debug = createDebugPanel({
-    disk,
-    stars,
-    setSize: (v) => { widthFit = v; },
-    setCamYaw: (v) => { camYaw = v; },
-    setCamPitch: (v) => { camPitch = v; }
-  });
-
-  const { composer } = createPostProcessing(renderer, scene, camera, {
+  const { composer, coreMask } = createPostProcessing(renderer, scene, camera, {
     isMobile,
     diskNormal,
     diskInner: INNER,
@@ -119,6 +112,27 @@ function build() {
   let widthFit = DISK_WIDTH_FIT;
   let camYaw = 0;
   let camPitch = 5;
+
+  const label = createWorkLabel();
+
+  const debug = createDebugPanel({
+    disk,
+    stars,
+    label,
+    setSize: (v) => { widthFit = v; },
+    setCamYaw: (v) => { camYaw = v; },
+    setCamPitch: (v) => { camPitch = v; },
+    setHorizon: (v) => {
+      blackHole.setHorizon(v);
+      coreMask.uniforms.uCoreRadius.value = v;
+    },
+    setPhotonRing: (v) => blackHole.setPhotonRing(v),
+    setDiskRadii: (inner, outer) => {
+      disk.setRadii(inner, outer);
+      coreMask.uniforms.uDiskInner.value = inner;
+      coreMask.uniforms.uDiskOuter.value = outer;
+    }
+  });
 
   function fitDistance() {
     const tanHalfH =

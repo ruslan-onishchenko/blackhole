@@ -10,8 +10,8 @@ function makeDiskMesh(shaders, opts) {
     uniforms: {
       uTime: { value: 0 },
       uReveal: { value: 0 },
-      uInner: { value: INNER },
-      uOuter: { value: OUTER },
+      uInner: { value: opts.inner },
+      uOuter: { value: opts.outer },
       uWrapAmount: { value: opts.wrapAmount },
       uWrapDir: { value: opts.wrapDir },
       uWrapOuter: { value: opts.wrapOuter },
@@ -31,7 +31,7 @@ function makeDiskMesh(shaders, opts) {
   return new THREE.Mesh(opts.geometry, material);
 }
 
-function makeParticles(shaders, { isMobile, pixelRatio }) {
+function makeParticles(shaders, { isMobile, pixelRatio, inner, outer }) {
   const capacity = 10000;
   const defaultCount = isMobile ? 1600 : 4200;
 
@@ -43,7 +43,7 @@ function makeParticles(shaders, { isMobile, pixelRatio }) {
 
   for (let i = 0; i < capacity; i++) {
     const rr = Math.pow(Math.random(), 1.5);
-    aRadius[i] = INNER + 0.15 + rr * (OUTER - INNER - 0.3);
+    aRadius[i] = inner + 0.15 + rr * (outer - inner - 0.3);
     aTheta[i] = Math.random() * Math.PI * 2;
     aY[i] = (Math.random() - Math.random()) * (0.05 + rr * 0.16);
     aSize[i] = 0.03 + Math.pow(Math.random(), 2.0) * 0.13;
@@ -83,16 +83,20 @@ function makeParticles(shaders, { isMobile, pixelRatio }) {
 
 export function createAccretionDisk(shaders, { isMobile, pixelRatio }) {
   const group = new THREE.Group();
+  let inner = INNER;
+  let outer = OUTER;
 
   const geometry = new THREE.RingGeometry(
-    INNER,
-    OUTER,
+    inner,
+    outer,
     isMobile ? 200 : 320,
     isMobile ? 10 : 18
   );
 
   const upper = makeDiskMesh(shaders, {
     geometry,
+    inner,
+    outer,
     wrapAmount: 0.7,
     wrapDir: 1.0,
     wrapOuter: 3.7,
@@ -102,6 +106,8 @@ export function createAccretionDisk(shaders, { isMobile, pixelRatio }) {
 
   const lower = makeDiskMesh(shaders, {
     geometry,
+    inner,
+    outer,
     wrapAmount: 0.66,
     wrapDir: -0.62,
     wrapOuter: 3.3,
@@ -109,7 +115,7 @@ export function createAccretionDisk(shaders, { isMobile, pixelRatio }) {
     backOnly: 1
   });
 
-  const particles = makeParticles(shaders, { isMobile, pixelRatio });
+  const particles = makeParticles(shaders, { isMobile, pixelRatio, inner, outer });
   const particleCount = particles.geometry.getAttribute('aRadius').count;
   const particleDefault = isMobile ? 1600 : 4200;
 
@@ -141,6 +147,39 @@ export function createAccretionDisk(shaders, { isMobile, pixelRatio }) {
     },
     setParticleFraction(f) {
       particles.geometry.setDrawRange(0, Math.max(1, Math.floor(particleDefault * f)));
+    },
+    setRadii(newInner, newOuter) {
+      const prevInner = inner;
+      const prevOuter = outer;
+      const span = Math.max(1e-4, prevOuter - prevInner - 0.3);
+
+      inner = newInner;
+      outer = newOuter;
+
+      for (const m of [upper, lower, particles]) {
+        m.material.uniforms.uInner.value = inner;
+        m.material.uniforms.uOuter.value = outer;
+      }
+
+      const nextGeometry = new THREE.RingGeometry(
+        inner,
+        outer,
+        isMobile ? 200 : 320,
+        isMobile ? 10 : 18
+      );
+      const oldGeometry = upper.geometry;
+      upper.geometry = nextGeometry;
+      lower.geometry = nextGeometry;
+      oldGeometry.dispose();
+
+      const aR = particles.geometry.getAttribute('aRadius');
+      const nextSpan = Math.max(0, outer - inner - 0.3);
+      for (let i = 0; i < aR.count; i++) {
+        const t = (aR.array[i] - prevInner - 0.15) / span;
+        aR.array[i] = inner + 0.15 + t * nextSpan;
+      }
+      aR.needsUpdate = true;
+      particles.geometry.boundingSphere.radius = outer + 1;
     }
   };
 }

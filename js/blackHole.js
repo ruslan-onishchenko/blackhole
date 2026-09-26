@@ -57,6 +57,12 @@ export function createBlackHole(shaders) {
       halo.material.uniforms.uReveal.value = reveal;
       photonRing.lookAt(camera.position);
       halo.lookAt(camera.position);
+    },
+    setHorizon(r) {
+      horizon.scale.setScalar(r / 1.1);
+    },
+    setPhotonRing(outerR) {
+      photonRing.scale.setScalar(outerR / 1.75);
     }
   };
 }

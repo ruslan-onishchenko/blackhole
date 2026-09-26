@@ -28,17 +28,20 @@ void main() {
   vR = r;
   vTheta = theta;
 
-  float y = 0.0;
+  vec3 pos = vec3(p.x, 0.0, -p.y);
 
-  vec3 pos = vec3(p.x, y, -p.y);
+  vec4 mv = modelViewMatrix * vec4(pos, 1.0);
+  vec3 core = (modelViewMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+  vec3 d = mv.xyz - core;
 
-  float backness = clamp(-pos.z / max(r, 1e-4), 0.0, 1.0);
   float wrapW = 1.0 - smoothstep(uInner, uWrapOuter, r);
+  float backness = clamp(-d.z / max(length(d), 1e-4), 0.0, 1.0);
   vWrapMask = backness * backness * wrapW;
+
   float psi = vWrapMask * uWrapAmount * uWrapDir;
   float s = sin(psi);
   float c = cos(psi);
-  pos = vec3(pos.x, pos.y * c - pos.z * s, pos.y * s + pos.z * c);
+  d = vec3(d.x, d.y * c - d.z * s, d.y * s + d.z * c);
 
-  gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+  gl_Position = projectionMatrix * vec4(core + d, 1.0);
 }

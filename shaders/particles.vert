@@ -18,20 +18,22 @@ varying float vTw;
 void main() {
   float speed = 0.41 / pow(aRadius, 1.5);
   float th = aTheta + uTime * speed;
-  float wob = sin(uTime * 0.35 + aSeed * 87.0) * 0.10 + sin(uTime * 0.13 + aSeed * 31.0) * 0.06;
-  float r = aRadius + wob;
+  float r = aRadius;
   float y = aY;
 
   vec3 pos = vec3(cos(th) * r, y, -sin(th) * r);
 
-  float backness = clamp(-pos.z / max(r, 1e-4), 0.0, 1.0);
+  vec4 mv = modelViewMatrix * vec4(pos, 1.0);
+  vec3 core = (modelViewMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+  vec3 d = mv.xyz - core;
+
   float wrapW = 1.0 - smoothstep(uInner, uWrapOuter, r);
+  float backness = clamp(-d.z / max(length(d), 1e-4), 0.0, 1.0);
   float psi = backness * backness * wrapW * uWrapAmount;
   float s = sin(psi);
   float c = cos(psi);
-  pos = vec3(pos.x, pos.y * c - pos.z * s, pos.y * s + pos.z * c);
-
-  vec4 mv = modelViewMatrix * vec4(pos, 1.0);
+  d = vec3(d.x, d.y * c - d.z * s, d.y * s + d.z * c);
+  mv.xyz = core + d;
   gl_PointSize = aSize * uSizeScale * uPixelRatio * (150.0 / max(-mv.z, 0.1));
   gl_Position = projectionMatrix * mv;
 
