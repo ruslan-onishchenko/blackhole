@@ -88,7 +88,11 @@ const DBG_BASE_CSS = `
 }
 #debug-panel .dbg-stats #dbg-fps { color: #ffc27a; text-shadow: 0 0 8px rgba(255, 140, 40, 0.5); }
 #debug-panel .dbg-section { margin-bottom: 12px; }
+#debug-panel .dbg-section.dbg-collapsed-margin { margin-bottom: 6px; }
 #debug-panel .dbg-section-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   margin-bottom: 8px;
   padding-bottom: 5px;
   border-bottom: 1px solid transparent;
@@ -98,7 +102,18 @@ const DBG_BASE_CSS = `
   text-transform: uppercase;
   font-size: 11px;
   color: #e8b07a;
+  cursor: pointer;
+  user-select: none;
 }
+#debug-panel .dbg-section-title:hover { color: #ffd9a3; }
+#debug-panel .dbg-arrow {
+  flex: none;
+  width: 12px;
+  font-size: 10px;
+  line-height: 1;
+}
+#debug-panel .dbg-section.collapsed .dbg-section-content { display: none; }
+#debug-panel .dbg-section.collapsed .dbg-section-title { margin-bottom: 0; padding-bottom: 6px; }
 #debug-panel .dbg-row {
   display: grid;
   grid-template-columns: 1fr auto;
@@ -290,7 +305,7 @@ function injectStyles() {
 
 const PARAMS_FILE = 'params.json';
 
-export function createDebugPanel({ disk, stars, label, setSize, setCamYaw, setCamPitch, setHorizon, setPhotonRing, setDiskRadii }) {
+export function createDebugPanel({ disk, stars, label, setSize, setCamYaw, setCamPitch, setCamRoll, setHorizon, setPhotonRing, setDiskRadii }) {
   if (!new URLSearchParams(window.location.search).has('debug')) return null;
 
   document.getElementById('debug-root')?.remove();
@@ -333,12 +348,30 @@ export function createDebugPanel({ disk, stars, label, setSize, setCamYaw, setCa
   function section(labelText) {
     const el = document.createElement('div');
     el.className = 'dbg-section';
+
     const h = document.createElement('div');
     h.className = 'dbg-section-title';
-    h.textContent = labelText;
-    el.appendChild(h);
+
+    const arrow = document.createElement('span');
+    arrow.className = 'dbg-arrow';
+    arrow.textContent = '▾';
+
+    const txt = document.createElement('span');
+    txt.textContent = labelText;
+
+    h.append(arrow, txt);
+
+    const content = document.createElement('div');
+    content.className = 'dbg-section-content';
+
+    h.addEventListener('click', () => {
+      el.classList.toggle('collapsed');
+      arrow.textContent = el.classList.contains('collapsed') ? '▸' : '▾';
+    });
+
+    el.append(h, content);
     panel.appendChild(el);
-    return el;
+    return content;
   }
 
   function slider(parent, labelText, min, max, step, value, onChange, fmt) {
@@ -563,6 +596,15 @@ export function createDebugPanel({ disk, stars, label, setSize, setCamYaw, setCa
         (v) => `${v | 0}°`
       );
       registerParam('cam.pitch', pitchInput, 5);
+    }
+
+    if (setCamRoll) {
+      const rollInput = slider(
+        ss, 'Наклон горизонта (лево/право)', -90, 90, 1, 0,
+        setCamRoll,
+        (v) => `${v | 0}°`
+      );
+      registerParam('cam.roll', rollInput, 0);
     }
   }
 

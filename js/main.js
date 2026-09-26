@@ -112,6 +112,7 @@ function build() {
   let widthFit = DISK_WIDTH_FIT;
   let camYaw = 0;
   let camPitch = 5;
+  let camRoll = 0;
 
   const label = createWorkLabel();
 
@@ -122,6 +123,7 @@ function build() {
     setSize: (v) => { widthFit = v; },
     setCamYaw: (v) => { camYaw = v; },
     setCamPitch: (v) => { camPitch = v; },
+    setCamRoll: (v) => { camRoll = v; },
     setHorizon: (v) => {
       blackHole.setHorizon(v);
       coreMask.uniforms.uCoreRadius.value = v;
@@ -159,6 +161,10 @@ function build() {
     }
 
     camera.lookAt(0, 0, 0);
+
+    if (camRoll !== 0) {
+      camera.rotateZ(THREE.MathUtils.degToRad(camRoll));
+    }
   }
 
   function onResize() {
