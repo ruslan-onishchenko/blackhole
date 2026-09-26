@@ -1,6 +1,7 @@
 {
   "name": "blackhole",
   "private": true,
+  "license": "AGPL-3.0-or-later",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -11,6 +12,7 @@
     "three": "^0.160.1"
   },
   "devDependencies": {
-    "vite": "^7.6.0"
+    "terser": "^5.51.2",
+    "vite": "^8.3.1"
   }
 }
