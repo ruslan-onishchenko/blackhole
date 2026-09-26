@@ -5,6 +5,7 @@ import { createAccretionDisk, INNER, OUTER } from './accretionDisk.js';
 import { createStarField } from './stars.js';
 import { createPostProcessing } from './postprocessing.js';
 import { createAdaptiveQuality } from './quality.js';
+import { createDebugPanel } from './debug.js';
 
 const canvas = document.getElementById('scene');
 
@@ -95,6 +96,14 @@ function build() {
   const stars = createStarField(shaders, { isMobile, pixelRatio });
   scene.add(stars.points);
 
+  const debug = createDebugPanel({
+    disk,
+    stars,
+    setSize: (v) => { widthFit = v; },
+    setCamYaw: (v) => { camYaw = v; },
+    setCamPitch: (v) => { camPitch = v; }
+  });
+
   const { composer } = createPostProcessing(renderer, scene, camera, {
     isMobile,
     diskNormal,
@@ -107,17 +116,28 @@ function build() {
   const clock = new THREE.Clock();
   let animTime = 0;
   const motionScale = reducedMotion ? 0.05 : 1;
+  let widthFit = DISK_WIDTH_FIT;
+  let camYaw = 0;
+  let camPitch = 5;
 
   function fitDistance() {
     const tanHalfH =
       Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)) * camera.aspect;
-    return (DISK_OUTER_RADIUS / (DISK_WIDTH_FIT * tanHalfH)) * 1.02;
+    return (DISK_OUTER_RADIUS / (widthFit * tanHalfH)) * 1.02;
   }
 
   function updateCamera(t) {
     const dist = fitDistance();
+    const yaw = THREE.MathUtils.degToRad(camYaw);
+    const pitch = THREE.MathUtils.degToRad(camPitch);
 
-    camera.position.copy(BASE_DIR).multiplyScalar(dist);
+    camera.position
+      .set(
+        Math.sin(yaw) * Math.cos(pitch),
+        Math.sin(pitch),
+        Math.cos(yaw) * Math.cos(pitch)
+      )
+      .multiplyScalar(dist);
 
     if (!reducedMotion) {
       camera.position.applyAxisAngle(UP, Math.sin(t * 0.05) * 0.05);
@@ -175,6 +195,7 @@ function build() {
     composer.render();
 
     quality.frame(rawDt, elapsed);
+    if (debug) debug.frame(rawDt);
   });
 
   return {

@@ -60,6 +60,7 @@ export function createStarField(shaders, { isMobile, pixelRatio }) {
 
   return {
     points,
+    count,
     update(time, reveal) {
       material.uniforms.uTime.value = time;
       material.uniforms.uReveal.value = reveal;

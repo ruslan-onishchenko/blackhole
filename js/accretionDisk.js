@@ -16,7 +16,12 @@ function makeDiskMesh(shaders, opts) {
       uWrapDir: { value: opts.wrapDir },
       uWrapOuter: { value: opts.wrapOuter },
       uIntensity: { value: opts.intensity },
-      uBackOnly: { value: opts.backOnly }
+      uBackOnly: { value: opts.backOnly },
+      uSpeed: { value: 0.41 },
+      uDoppler: { value: 0.18 },
+      uHaze: { value: 0.05 },
+      uRim: { value: 1.3 },
+      uStreak: { value: 0.35 }
     },
     transparent: true,
     blending: THREE.AdditiveBlending,
@@ -27,30 +32,32 @@ function makeDiskMesh(shaders, opts) {
 }
 
 function makeParticles(shaders, { isMobile, pixelRatio }) {
-  const count = isMobile ? 1600 : 4200;
+  const capacity = 10000;
+  const defaultCount = isMobile ? 1600 : 4200;
 
-  const aRadius = new Float32Array(count);
-  const aTheta = new Float32Array(count);
-  const aY = new Float32Array(count);
-  const aSize = new Float32Array(count);
-  const aSeed = new Float32Array(count);
+  const aRadius = new Float32Array(capacity);
+  const aTheta = new Float32Array(capacity);
+  const aY = new Float32Array(capacity);
+  const aSize = new Float32Array(capacity);
+  const aSeed = new Float32Array(capacity);
 
-  for (let i = 0; i < count; i++) {
+  for (let i = 0; i < capacity; i++) {
     const rr = Math.pow(Math.random(), 1.5);
     aRadius[i] = INNER + 0.15 + rr * (OUTER - INNER - 0.3);
     aTheta[i] = Math.random() * Math.PI * 2;
     aY[i] = (Math.random() - Math.random()) * (0.05 + rr * 0.16);
-    aSize[i] = 0.06 + Math.pow(Math.random(), 2.0) * 0.26;
+    aSize[i] = 0.03 + Math.pow(Math.random(), 2.0) * 0.13;
     aSeed[i] = Math.random();
   }
 
   const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(count * 3), 3));
+  geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(capacity * 3), 3));
   geometry.setAttribute('aRadius', new THREE.BufferAttribute(aRadius, 1));
   geometry.setAttribute('aTheta', new THREE.BufferAttribute(aTheta, 1));
   geometry.setAttribute('aY', new THREE.BufferAttribute(aY, 1));
   geometry.setAttribute('aSize', new THREE.BufferAttribute(aSize, 1));
   geometry.setAttribute('aSeed', new THREE.BufferAttribute(aSeed, 1));
+  geometry.setDrawRange(0, defaultCount);
   geometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(), OUTER + 1);
 
   const material = new THREE.ShaderMaterial({
@@ -63,7 +70,8 @@ function makeParticles(shaders, { isMobile, pixelRatio }) {
       uInner: { value: INNER },
       uOuter: { value: OUTER },
       uWrapAmount: { value: 0.7 },
-      uWrapOuter: { value: 3.7 }
+      uWrapOuter: { value: 3.7 },
+      uSizeScale: { value: 1.0 }
     },
     transparent: true,
     blending: THREE.AdditiveBlending,
@@ -102,11 +110,20 @@ export function createAccretionDisk(shaders, { isMobile, pixelRatio }) {
   });
 
   const particles = makeParticles(shaders, { isMobile, pixelRatio });
+  const particleCount = particles.geometry.getAttribute('aRadius').count;
+  const particleDefault = isMobile ? 1600 : 4200;
 
   group.add(upper, lower, particles);
 
   return {
     group,
+    particleCount,
+    particleDefault,
+    materials: {
+      upper: upper.material,
+      lower: lower.material,
+      particles: particles.material
+    },
     update(time, reveal) {
       for (const mesh of [upper, lower]) {
         mesh.material.uniforms.uTime.value = time;
@@ -119,9 +136,11 @@ export function createAccretionDisk(shaders, { isMobile, pixelRatio }) {
     setPixelRatio(pr) {
       particles.material.uniforms.uPixelRatio.value = pr;
     },
+    setParticleCount(n) {
+      particles.geometry.setDrawRange(0, Math.max(0, Math.min(particleCount, Math.floor(n))));
+    },
     setParticleFraction(f) {
-      const total = particles.geometry.getAttribute('aRadius').count;
-      particles.geometry.setDrawRange(0, Math.max(1, Math.floor(total * f)));
+      particles.geometry.setDrawRange(0, Math.max(1, Math.floor(particleDefault * f)));
     }
   };
 }

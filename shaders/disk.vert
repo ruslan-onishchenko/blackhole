@@ -28,10 +28,7 @@ void main() {
   vR = r;
   vTheta = theta;
 
-  float t = clamp((r - uInner) / (uOuter - uInner), 0.0, 1.0);
-
-  float n = vnoise(p * 0.85 + vec2(uTime * 0.04, uTime * 0.02));
-  float y = (n - 0.5) * mix(0.03, 0.19, t);
+  float y = 0.0;
 
   vec3 pos = vec3(p.x, y, -p.y);
 

@@ -6,6 +6,7 @@ attribute float aSeed;
 
 uniform float uTime;
 uniform float uPixelRatio;
+uniform float uSizeScale;
 uniform float uInner;
 uniform float uOuter;
 uniform float uWrapAmount;
@@ -31,7 +32,7 @@ void main() {
   pos = vec3(pos.x, pos.y * c - pos.z * s, pos.y * s + pos.z * c);
 
   vec4 mv = modelViewMatrix * vec4(pos, 1.0);
-  gl_PointSize = aSize * uPixelRatio * (150.0 / max(-mv.z, 0.1));
+  gl_PointSize = aSize * uSizeScale * uPixelRatio * (150.0 / max(-mv.z, 0.1));
   gl_Position = projectionMatrix * mv;
 
   vT = clamp((r - uInner) / (uOuter - uInner), 0.0, 1.0);

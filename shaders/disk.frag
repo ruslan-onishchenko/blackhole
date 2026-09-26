@@ -4,6 +4,11 @@ uniform float uInner;
 uniform float uOuter;
 uniform float uIntensity;
 uniform float uBackOnly;
+uniform float uSpeed;
+uniform float uDoppler;
+uniform float uHaze;
+uniform float uRim;
+uniform float uStreak;
 
 varying float vR;
 varying float vTheta;
@@ -35,7 +40,7 @@ float fbm(vec2 p) {
 void main() {
   float t = clamp((vR - uInner) / (uOuter - uInner), 0.0, 1.0);
 
-  float speed = 0.41 / pow(max(vR, 0.001), 1.5);
+  float speed = uSpeed / pow(max(vR, 0.001), 1.5);
   float ang = vTheta - uTime * speed;
   vec2 rot = vec2(cos(ang), sin(ang));
 
@@ -48,13 +53,13 @@ void main() {
 
   float fil = smoothstep(0.58, 0.94, n2 * (0.75 + 0.25 * n1));
   fil *= 0.55 + 0.45 * smoothstep(0.55, 0.15, t);
-  float streak = smoothstep(0.60, 0.92, n1) * 0.35;
-  float haze = 0.05 * n1;
+  float streak = smoothstep(0.60, 0.92, n1) * uStreak;
+  float haze = uHaze * n1;
 
-  float doppler = 1.0 + 0.18 * cos(vTheta + 0.8);
+  float doppler = 1.0 + uDoppler * cos(vTheta + 0.8);
 
   float edgeIn = smoothstep(0.0, 0.0075, t) * (1.0 - smoothstep(0.0075, 0.045, t));
-  float rim = edgeIn * 1.3 * (0.6 + 0.6 * n2);
+  float rim = edgeIn * uRim * (0.6 + 0.6 * n2);
 
   float light = (fil * 1.5 + streak) * doppler + haze + rim;
 
