@@ -5,6 +5,7 @@ attribute float aSize;
 attribute float aSeed;
 
 uniform float uTime;
+uniform float uSpeed;
 uniform float uPixelRatio;
 uniform float uSizeScale;
 uniform float uInner;
@@ -16,7 +17,7 @@ varying float vT;
 varying float vTw;
 
 void main() {
-  float speed = 0.41 / pow(aRadius, 1.5);
+  float speed = uSpeed / pow(aRadius, 1.5);
   float th = aTheta + uTime * speed;
   float r = aRadius;
   float y = aY;
@@ -27,9 +28,7 @@ void main() {
   vec3 core = (modelViewMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
   vec3 d = mv.xyz - core;
 
-  float wrapW = 1.0 - smoothstep(uInner, uWrapOuter, r);
   float backness = clamp(-d.z / max(length(d), 1e-4), 0.0, 1.0);
-  float psi = backness * backness * wrapW * uWrapAmount;
 
   vec3 nv = normalize((modelViewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz);
   vec3 f = normalize(core);
@@ -39,6 +38,10 @@ void main() {
   lift /= max(length(lift), 1e-4);
   vec3 axis = cross(f, lift);
   axis /= max(length(axis), 1e-4);
+
+  float angFade = smoothstep(0.05, 0.45, backness);
+  float radFade = 1.0 - smoothstep(uWrapOuter * 0.7, uWrapOuter, r);
+  float psi = angFade * radFade * uWrapAmount;
 
   float sn = sin(psi);
   float cn = cos(psi);

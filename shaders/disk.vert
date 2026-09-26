@@ -38,8 +38,6 @@ void main() {
   float backness = clamp(-d.z / max(length(d), 1e-4), 0.0, 1.0);
   vWrapMask = backness * backness * wrapW;
 
-  float psi = vWrapMask * uWrapAmount * uWrapDir;
-
   vec3 nv = normalize((modelViewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz);
   vec3 f = normalize(core);
   float side = dot(nv, -core) >= 0.0 ? 1.0 : -1.0;
@@ -48,6 +46,10 @@ void main() {
   lift /= max(length(lift), 1e-4);
   vec3 axis = cross(f, lift);
   axis /= max(length(axis), 1e-4);
+
+  float angFade = smoothstep(0.05, 0.45, backness);
+  float radFade = 1.0 - smoothstep(uWrapOuter * 0.7, uWrapOuter, r);
+  float psi = angFade * radFade * uWrapAmount * uWrapDir;
 
   float sn = sin(psi);
   float cn = cos(psi);

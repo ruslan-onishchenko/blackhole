@@ -69,6 +69,7 @@ function makeParticles(shaders, { isMobile, pixelRatio, inner, outer }) {
       uPixelRatio: { value: pixelRatio },
       uInner: { value: INNER },
       uOuter: { value: OUTER },
+      uSpeed: { value: 0.41 },
       uWrapAmount: { value: 0.7 },
       uWrapOuter: { value: 3.7 },
       uSizeScale: { value: 1.0 }

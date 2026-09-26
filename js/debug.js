@@ -306,11 +306,12 @@ function injectStyles() {
 const PARAMS_FILE = 'params.json';
 
 export function createDebugPanel({ disk, stars, label, setSize, setCamYaw, setCamPitch, setCamRoll, setHorizon, setPhotonRing, setDiskRadii }) {
-  if (!new URLSearchParams(window.location.search).has('debug')) return null;
+  const isDebug = new URLSearchParams(window.location.search).has('debug');
 
-  document.getElementById('debug-root')?.remove();
-
-  injectStyles();
+  if (isDebug) {
+    document.getElementById('debug-root')?.remove();
+    injectStyles();
+  }
 
   const MAX_PARTICLES = disk.particleCount;
   const MAX_STARS = stars.count;
@@ -562,6 +563,12 @@ export function createDebugPanel({ disk, stars, label, setSize, setCamYaw, setCa
   );
   registerParam('particles.wrapZone', pWrapOuterInput, 3.7);
 
+  const pSpeedInput = slider(
+    sp, 'Скорость вращения', 0, 1.2, 0.01, 0.41,
+    (v) => { disk.materials.particles.uniforms.uSpeed.value = v; }
+  );
+  registerParam('particles.speed', pSpeedInput, 0.41);
+
   const starsInput = slider(
     sp, 'Звёзды: кол-во', 0, MAX_STARS, 1, MAX_STARS,
     (v) => stars.setStarFraction(v / MAX_STARS),
@@ -643,7 +650,7 @@ export function createDebugPanel({ disk, stars, label, setSize, setCamYaw, setCa
       registerParam('disk.inner', diInput, 2.3);
 
       const doInput = slider(
-        sc, 'Диск: внешн. радиус', 4.0, 8.0, 0.01, diskOuter,
+        sc, 'Диск: внешн. радиус', 4.0, 12.0, 0.01, diskOuter,
         (v) => {
           diskOuter = v;
           setDiskRadii(diskInner, diskOuter);
@@ -729,8 +736,10 @@ export function createDebugPanel({ disk, stars, label, setSize, setCamYaw, setCa
   actions.append(resetBtn, jsonBtn);
   panel.appendChild(actions);
 
-  root.append(panel, toggle);
-  document.body.appendChild(root);
+  if (isDebug) {
+    root.append(panel, toggle);
+    document.body.appendChild(root);
+  }
 
   const fpsEl = root.querySelector('#dbg-fps');
   const msEl = root.querySelector('#dbg-ms');
@@ -743,14 +752,16 @@ export function createDebugPanel({ disk, stars, label, setSize, setCamYaw, setCa
     setVisible(panel.classList.contains('hidden'));
   });
   closeBtn.addEventListener('click', () => setVisible(false));
-  window.addEventListener('keydown', (e) => {
-    if (e.code === 'Backquote') {
-      e.preventDefault();
-      setVisible(panel.classList.contains('hidden'));
-    } else if (e.code === 'Escape') {
-      document.getElementById('debug-overlay')?.classList.add('hidden');
-    }
-  });
+  if (isDebug) {
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Backquote') {
+        e.preventDefault();
+        setVisible(panel.classList.contains('hidden'));
+      } else if (e.code === 'Escape') {
+        document.getElementById('debug-overlay')?.classList.add('hidden');
+      }
+    });
+  }
 
   fetch(PARAMS_FILE)
     .then((r) => (r.ok ? r.json() : null))
@@ -764,7 +775,7 @@ export function createDebugPanel({ disk, stars, label, setSize, setCamYaw, setCa
 
   return {
     frame(dt) {
-      if (dt <= 0) return;
+      if (!isDebug || dt <= 0) return;
       acc += dt;
       frames++;
       if (acc >= 0.5) {
