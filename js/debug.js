@@ -673,8 +673,8 @@ export function createDebugPanel({ disk, blackHole, stars, label, setSize, setCa
   if (label) {
     const sl = section('Надпись');
 
-    const textEl = textInput(sl, 'Текст', 'ведутся работы', (v) => label.setText(v));
-    registerParam('label.text', textEl, 'ведутся работы');
+    const textEl = textInput(sl, 'Текст', 'ведутся технические работы', (v) => label.setText(v));
+    registerParam('label.text', textEl, 'ведутся технические работы');
 
     const sizeInput = slider(sl, 'Размер шрифта', 10, 64, 1, 22, (v) => label.setSize(v), (v) => `${v | 0}px`);
     registerParam('label.size', sizeInput, 22);

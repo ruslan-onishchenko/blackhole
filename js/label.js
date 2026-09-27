@@ -32,7 +32,7 @@ export function createWorkLabel() {
 
   const el = document.createElement('div');
   el.id = 'work-label';
-  el.textContent = 'ведутся работы';
+  el.textContent = 'ведутся технические работы';
   document.body.appendChild(el);
 
   return {

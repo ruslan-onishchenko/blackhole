@@ -1,9 +1,9 @@
-# Black Hole — заставка «Ведутся работы»
+# Black Hole — заставка «Ведутся технические работы»
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
 [![GitHub release](https://img.shields.io/github/v/release/ruslan-onishchenko/blackhole?include_prereleases&sort=semver)](https://github.com/ruslan-onishchenko/blackhole/releases)
 
-Загрузочная (maintenance) страница на случай проведения работ на сайте: вместо скучной заглушки — интерактивная в реальном времени сцена чёрной дыры с аккреционным диском, фотонным кольцом, звёздным полем и надписью «ведутся работы».
+Загрузочная (maintenance) страница на случай проведения работ на сайте: вместо скучной заглушки — интерактивная в реальном времени сцена чёрной дыры с аккреционным диском, фотонным кольцом, звёздным полем и надписью «ведутся технические работы».
 
 ![Скриншот сцены](screen.png)
 
@@ -39,7 +39,7 @@ blackhole/
 │   ├── stars.js        # звёздное поле
 │   ├── postprocessing.js # bloom и маска ядра
 │   ├── quality.js      # адаптивное качество рендера
-│   ├── label.js        # надпись «ведутся работы»
+│   ├── label.js        # надпись «ведутся технические работы»
 │   └── debug.js        # отладочная панель
 ├── shaders/            # .vert / .frag шейдеры
 ├── fonts/              # шрифт Space Age Cyrillic
@@ -75,8 +75,12 @@ npm run preview # локальный предпросмотр собранной
 ### Первый запуск (однократно)
 
 ```bash
-# 1. Получить сертификат Let's Encrypt (порт 80 на сервере должен быть свободен)
-docker compose run --rm -p 80:80 --entrypoint certbot certbot \
+# 0. Убедиться, что порт 80 свободен (никакой другой веб-сервер не слушает)
+docker compose down
+ss -tlnp | grep -E ':80\b|:443\b'   # вывод должен быть пустым
+
+# 1. Получить сертификат Let's Encrypt (--no-deps — не запускать Angie)
+docker compose run --rm --no-deps -p 80:80 --entrypoint certbot certbot \
   certonly --standalone --email <email> -d <домен> \
   --agree-tos --no-eff-email
 
@@ -110,7 +114,7 @@ CSS и HTML минифицируются встроенными средства
 
 ### Текст и вид надписи
 
-Надпись «ведутся работы» задаётся в `js/label.js` (переменная `el.textContent`) — там же настраиваются размер, цвет, свечение и отступ. Актуальные значения продублированы в `public/params.json`.
+Надпись «ведутся технические работы» задаётся в `js/label.js` (переменная `el.textContent`) — там же настраиваются размер, цвет, свечение и отступ. Актуальные значения продублированы в `public/params.json`.
 
 ### Параметры сцены
 
