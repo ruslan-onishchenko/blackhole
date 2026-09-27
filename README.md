@@ -2,8 +2,11 @@
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
 [![GitHub release](https://img.shields.io/github/v/release/ruslan-onishchenko/blackhole?include_prereleases&sort=semver)](https://github.com/ruslan-onishchenko/blackhole/releases)
+[![Демо: blackhole.onishchenko.com](https://img.shields.io/badge/demo-blackhole.onishchenko.com-blue)](https://blackhole.onishchenko.com)
 
 Загрузочная (maintenance) страница на случай проведения работ на сайте: вместо скучной заглушки — интерактивная в реальном времени сцена чёрной дыры с аккреционным диском, фотонным кольцом, звёздным полем и надписью «ведутся технические работы».
+
+**Живая демо-страница: https://blackhole.onishchenko.com**
 
 ![Скриншот сцены](screen.png)
 
@@ -70,7 +73,12 @@ npm run preview # локальный предпросмотр собранной
 
 Продакшн-образ на базе веб-сервера [Angie](https://en.angie.software/angie/docs/installation/docker/) (официальный образ `docker.angie.software/angie:1.12.2-minimal`, Alpine). Многоэтапная сборка: Node 24 собирает сайт через Vite, затем статики копируются в Angie. Раздача по HTTPS с сертификатом [Let's Encrypt](https://letsencrypt.org/) через certbot-сайдкар.
 
-Перед первым запуском замените `<домен>` и `<email>` в `docker/angie.conf` и командах ниже.
+Домен и email задаются переменными окружения: `DOMAIN` (подставляется в конфиг Angie из шаблона при старте контейнера) и `EMAIL` (для certbot). Значения можно задать в файле `.env` рядом с `docker-compose.yml` или в окружении:
+
+```bash
+export DOMAIN=example.com
+export EMAIL=user@example.com
+```
 
 ### Первый запуск (однократно)
 
@@ -81,14 +89,14 @@ ss -tlnp | grep -E ':80\b|:443\b'   # вывод должен быть пуст�
 
 # 1. Получить сертификат Let's Encrypt (--no-deps — не запускать Angie)
 docker compose run --rm --no-deps -p 80:80 --entrypoint certbot certbot \
-  certonly --standalone --email <email> -d <домен> \
+  certonly --standalone --email "$EMAIL" -d "$DOMAIN" \
   --agree-tos --no-eff-email
 
 # 2. Собрать и запустить стек
 docker compose up -d --build
 ```
 
-Сайт доступен по `https://<домен>`; HTTP автоматически редиректит на HTTPS (кроме ACME-челленджей).
+Сайт доступен по `https://$DOMAIN`; HTTP автоматически редиректит на HTTPS (кроме ACME-челленджей).
 
 ### Продление сертификата
 
