@@ -8,7 +8,11 @@ RUN npm run build
 
 # --- Stage 2: Angie ---
 FROM docker.angie.software/angie:1.12.2-minimal
-COPY docker/angie.conf /etc/angie/angie.conf
+COPY docker/angie.conf /etc/angie/angie.conf.template
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 COPY --from=builder /app/dist /usr/share/angie/html
+ENV DOMAIN=localhost
 EXPOSE 80 443
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["angie", "-g", "daemon off;"]

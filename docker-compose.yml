@@ -2,6 +2,8 @@ services:
   blackhole:
     build: .
     image: blackhole:latest
+    environment:
+      - DOMAIN=${DOMAIN:?set DOMAIN in .env or environment}
     command: >-
       /bin/sh -c
       "while :; do sleep 6h & wait $${!}; angie -s reload; done &
