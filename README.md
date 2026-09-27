@@ -66,6 +66,36 @@ npm run preview # локальный предпросмотр собранной
 
 Результат сборки — содержимое каталога `dist/`: один минифицированный JS-бандл (~516 КБ, ~128 КБ gzip вместе с Three.js), минифицированный CSS и скопированные без изменений `shaders/`, `fonts/` и `params.json` из `public/`.
 
+## Docker
+
+Продакшн-образ на базе веб-сервера [Angie](https://en.angie.software/angie/docs/installation/docker/) (официальный образ `docker.angie.software/angie:1.12.2-minimal`, Alpine). Многоэтапная сборка: Node 24 собирает сайт через Vite, затем статики копируются в Angie. Раздача по HTTPS с сертификатом [Let's Encrypt](https://letsencrypt.org/) через certbot-сайдкар.
+
+Перед первым запуском замените `<домен>` и `<email>` в `docker/angie.conf` и командах ниже.
+
+### Первый запуск (однократно)
+
+```bash
+# 1. Получить сертификат Let's Encrypt (порт 80 на сервере должен быть свободен)
+docker compose run --rm -p 80:80 --entrypoint certbot certbot \
+  certonly --standalone --email <email> -d <домен> \
+  --agree-tos --no-eff-email
+
+# 2. Собрать и запустить стек
+docker compose up -d --build
+```
+
+Сайт доступен по `https://<домен>`; HTTP автоматически редиректит на HTTPS (кроме ACME-челленджей).
+
+### Продление сертификата
+
+Автоматическое: контейнер certbot каждые 12 часов выполняет `certbot renew` (webroot-челлендж, без простоя), а контейнер Angie каждые 6 часов перезагружает конфиг и подхватывает продлённый сертификат.
+
+Проверка вручную:
+
+```bash
+docker compose run --rm --entrypoint certbot certbot renew --dry-run
+```
+
 ### Минификация
 
 JS минифицируется [Terser](https://terser.org/) (конфигурация в `vite.config.js`):
